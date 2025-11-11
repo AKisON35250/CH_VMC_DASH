@@ -1,5 +1,5 @@
 // --- IndexedDB Setup ---
-// Waffenschein DB
+// Waffenlizenz DB
 let dbWeapon;
 let requestWeapon = indexedDB.open("VMC_Weapon_DB", 1);
 
@@ -33,24 +33,24 @@ requestLaw.onsuccess = function(e){
 
 // --- Modal Funktionen ---
 function openWeaponForm(){ 
-    document.getElementById("weapon-form").style.display="block"; 
+    document.getElementById("weapon-form").style.display="flex"; 
 }
 function closeWeaponForm(){ 
     document.getElementById("weapon-form").style.display="none"; 
 }
 
 function openLawForm(){ 
-    document.getElementById("law-form").style.display="block"; 
+    document.getElementById("law-form").style.display="flex"; 
 }
 function closeLawForm(){ 
     document.getElementById("law-form").style.display="none"; 
 }
 
-// --- Waffenschein speichern ---
+// --- Waffenlizenz speichern ---
 function addWeaponEntry(){
-    const name = document.getElementById("weapon-name").value;
+    const name = document.getElementById("weapon-name").value.trim();
     const birthday = document.getElementById("weapon-birthday").value;
-    const phone = document.getElementById("weapon-phone").value;
+    const phone = document.getElementById("weapon-phone").value.trim();
     const status = document.getElementById("weapon-status").value;
 
     if(!name || !birthday || !phone){
@@ -68,15 +68,15 @@ function addWeaponEntry(){
         document.getElementById("weapon-birthday").value="";
         document.getElementById("weapon-phone").value="";
         document.getElementById("weapon-status").value="bestanden";
-        alert("Waffenschein gespeichert!");
+        console.log("Waffenschein gespeichert!");
     }
 }
 
 // --- Anwalt-Lizenz speichern ---
 function addLawEntry(){
-    const name = document.getElementById("law-name").value;
+    const name = document.getElementById("law-name").value.trim();
     const birthday = document.getElementById("law-birthday").value;
-    const phone = document.getElementById("law-phone").value;
+    const phone = document.getElementById("law-phone").value.trim();
     const status = document.getElementById("law-status").value;
 
     if(!name || !birthday || !phone){
@@ -94,12 +94,12 @@ function addLawEntry(){
         document.getElementById("law-birthday").value="";
         document.getElementById("law-phone").value="";
         document.getElementById("law-status").value="bestanden";
-        alert("Anwalt-Lizenz gespeichert!");
+        console.log("Anwalt-Lizenz gespeichert!");
     }
 }
 
-// --- Optional: Daten laden für Abfragen-Seite ---
-function loadAllEntries(storeName, callback){
+// --- Optional: Daten laden für abfragen.html ---
+function loadEntries(storeName, callback){
     let db = storeName === "weapons" ? dbWeapon : dbLaw;
     let tx = db.transaction(storeName,"readonly");
     let store = tx.objectStore(storeName);
@@ -115,3 +115,4 @@ function loadAllEntries(storeName, callback){
         }
     }
 }
+
