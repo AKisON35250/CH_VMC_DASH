@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patientenakte - Psychologische Abteilung</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f7;
+    color: #2c3e50;
+    margin: 0;
+    padding: 20px;
+}
+h1 { text-align: center; margin-bottom: 20px; }
+button {
+    margin-bottom: 10px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid #7f8c8d;
+    background-color: #bdc3c7;
+    cursor: pointer;
+}
+button:hover { background-color: #95a5a6; }
+
+.container {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 10px;
+}
+.left, .right {
+    background-color: #ffffff;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    padding: 15px;
+}
+.left { flex: 1; }
+.right { flex: 2; display: flex; flex-direction: column; gap: 10px; }
+.right-top, .right-bottom { background-color: #ecf0f1; padding: 10px; border-radius: 4px; min-height: 100px; }
+textarea { width: 100%; height: 150px; border-radius: 4px; border: 1px solid #7f8c8d; padding: 8px; resize: vertical; }
+label { display: block; margin-top: 10px; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>Patientenakte - Psychologische Abteilung</h1>
+
+<button id="back-btn" onclick="window.location.href='vmc-dashboard.html'">Zurück</button>
+<button onclick="window.location.href='patienten_abfrage.html'">Zur Übersicht</button>
+
+<div class="container">
+    <div class="left">
+        <label for="name">Name</label>
+        <input type="text" id="name" placeholder="Patientenname">
+        
+        <label for="birthday">Geburtsdatum</label>
+        <input type="date" id="birthday">
+
+        <label for="phone">Telefonnummer</label>
+        <input type="text" id="phone" placeholder="Telefonnummer">
+    </div>
+    <div class="right">
+        <div class="right-top">
+            <label for="diagnose">Diagnose</label>
+            <textarea id="diagnose" placeholder="Diagnose eingeben..."></textarea>
+        </div>
+        <div class="right-bottom">
+            <label for="berichte">Berichte / Notizen</label>
+            <textarea id="berichte" placeholder="Berichte oder Notizen..."></textarea>
+        </div>
+    </div>
+</div>
+
+<label for="behandlung">Behandlung / Verlauf</label>
+<textarea id="behandlung" placeholder="Behandlung eintragen..."></textarea>
+
+<button onclick="savePatient()">Speichern</button>
+
+<script>
+// IndexedDB Setup
+let db;
+let editId = null; // Für Bearbeiten
+const request = indexedDB.open("PatientenDB", 1);
+
+request.onupgradeneeded = e => {
+    db = e.target.result;
+    if(!db.objectStoreNames.contains("patients")) {
+        db.createObjectStore("patients", { keyPath: "id", autoIncrement: true });
+    }
+};
+
+request.onsuccess = e => {
+    db = e.target.result;
+    loadPatientForEdit();
+};
+
+// Prüfen, ob wir bearbeiten
+function loadPatientForEdit() {
+    const params = new URLSearchParams(window.location.search);
+    if(params.has('id')) {
+        editId = Number(params.get('id'));
+        const tx = db.transaction("patients", "readonly");
+        const store = tx.objectStore("patients");
+        store.get(editId).onsuccess = e => {
+            const p = e.target.result;
+            if(p) {
+                document.getElementById('name').value = p.name;
+                document.getElementById('birthday').value = p.birthday;
+                document.getElementById('phone').value = p.phone;
+                document.getElementById('diagnose').value = p.diagnose;
+                document.getElementById('berichte').value = p.berichte;
+                document.getElementById('behandlung').value = p.behandlung;
+            }
+        }
+    }
+}
+
+// Speichern
+function savePatient() {
+    const name = document.getElementById('name').value;
+    const birthday = document.getElementById('birthday').value;
+    const phone = document.getElementById('phone').value;
+    const diagnose = document.getElementById('diagnose').value;
+    const berichte = document.getElementById('berichte').value;
+    const behandlung = document.getElementById('behandlung').value;
+
+    if(!name || !birthday || !phone) {
+        alert("Name, Geburtsdatum und Telefonnummer müssen ausgefüllt sein!");
+        return;
+    }
+
+    const tx = db.transaction("patients", "readwrite");
+    const store = tx.objectStore("patients");
+
+    if(editId) {
+        // Bestehende Akte aktualisieren
+        store.get(editId).onsuccess = e => {
+            const p = e.target.result;
+            p.name = name; p.birthday = birthday; p.phone = phone;
+            p.diagnose = diagnose; p.berichte = berichte; p.behandlung = behandlung;
+            store.put(p).onsuccess = () => {
+                alert("Patientenakte aktualisiert!");
+                editId = null;
+                clearFields();
+            };
+        }
+    } else {
+        // Neue Akte speichern
+        store.add({ name, birthday, phone, diagnose, berichte, behandlung }).onsuccess = () => {
+            alert("Patientenakte gespeichert!");
+            clearFields();
+        };
+    }
+}
+
+// Felder leeren
+function clearFields() {
+    document.getElementById('name').value = '';
+    document.getElementById('birthday').value = '';
+    document.getElementById('phone').value = '';
+    document.getElementById('diagnose').value = '';
+    document.getElementById('berichte').value = '';
+    document.getElementById('behandlung').value = '';
+}
+</script>
+
+</body>
+</html>

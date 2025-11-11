@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patientenakten Übersicht</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f7;
+    color: #2c3e50;
+    margin: 0;
+    padding: 20px;
+}
+h1 { text-align: center; margin-bottom: 20px; }
+button {
+    margin-bottom: 10px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid #7f8c8d;
+    background-color: #bdc3c7;
+    cursor: pointer;
+}
+button:hover { background-color: #95a5a6; }
+input[type="text"] {
+    padding: 6px;
+    width: 200px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid #7f8c8d;
+}
+.table-container {
+    overflow-x: auto;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    background-color: #ffffff;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th {
+    background-color: #34495e;
+    color: #ecf0f1;
+    padding: 10px;
+    text-align: left;
+}
+td {
+    padding: 10px;
+    border-bottom: 1px solid #bdc3c7;
+}
+tbody tr:nth-child(even) { background-color: #ecf0f1; }
+tbody tr:hover { background-color: #d0d7de; }
+td button {
+    padding: 4px 8px;
+    margin-left: 5px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid #7f8c8d;
+    background-color: #bdc3c7;
+    color: #2c3e50;
+    cursor: pointer;
+}
+td button:hover { background-color: #95a5a6; }
+</style>
+</head>
+<body>
+
+<h1>Patientenakten Übersicht</h1>
+
+<button id="back-btn" onclick="window.location.href='vmc-dashboard.html'">Zurück</button>
+<button onclick="window.location.href='patienten_akte_layout.html'">Neue Akte</button>
+<input type="text" id="search" placeholder="Patientenname suchen..." onkeyup="filterPatients()">
+
+<div class="table-container">
+    <table id="patient-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Geburtsdatum</th>
+                <th>Telefon</th>
+                <th>Diagnose</th>
+                <th>Berichte</th>
+                <th>Behandlung</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Patienten werden hier eingefügt -->
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+let db;
+const request = indexedDB.open("PatientenDB", 1);
+
+request.onupgradeneeded = e => {
+    db = e.target.result;
+    if(!db.objectStoreNames.contains("patients")) {
+        db.createObjectStore("patients", { keyPath: "id", autoIncrement: true });
+    }
+};
+
+request.onsuccess = e => {
+    db = e.target.result;
+    loadPatients();
+};
+
+// Tabelle laden
+function loadPatients() {
+    const tbody = document.querySelector("#patient-table tbody");
+    tbody.innerHTML = "";
+    const tx = db.transaction("patients", "readonly");
+    const store = tx.objectStore("patients");
+    store.getAll().onsuccess = e => {
+        const patients = e.target.result;
+        patients.forEach(p => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${p.name}</td>
+                <td>${p.birthday}</td>
+                <td>${p.phone}</td>
+                <td>${p.diagnose}</td>
+                <td>${p.berichte}</td>
+                <td>${p.behandlung}</td>
+                <td>
+                    <button onclick="editPatient(${p.id})">Bearbeiten</button>
+                    <button onclick="deletePatient(${p.id})">Löschen</button>
+                    <button onclick="downloadPDF(${p.id})">PDF</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+}
+
+// Patienten bearbeiten im Layout
+function editPatient(id) {
+    window.location.href = `patienten_akte_layout.html?id=${id}`;
+}
+
+// Patienten löschen
+function deletePatient(id) {
+    if(confirm("Willst du diese Akte wirklich löschen?")) {
+        const tx = db.transaction("patients", "readwrite");
+        const store = tx.objectStore("patients");
+        store.delete(id).onsuccess = loadPatients;
+    }
+}
+
+// Nach Name filtern
+function filterPatients() {
+    const filter = document.getElementById('search').value.toLowerCase();
+    const rows = document.querySelectorAll("#patient-table tbody tr");
+    rows.forEach(row => {
+        const nameCell = row.cells[0].innerText.toLowerCase();
+        row.style.display = nameCell.includes(filter) ? "" : "none";
+    });
+}
+
+// PDF herunterladen
+function downloadPDF(id) {
+    const tx = db.transaction("patients", "readonly");
+    const store = tx.objectStore("patients");
+    store.get(id).onsuccess = e => {
+        const p = e.target.result;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text("Patientenakte", 10, 20);
+        doc.setFontSize(12);
+        doc.text(`Name: ${p.name}`, 10, 30);
+        doc.text(`Geburtsdatum: ${p.birthday}`, 10, 40);
+        doc.text(`Telefon: ${p.phone}`, 10, 50);
+        doc.text(`Diagnose: ${p.diagnose}`, 10, 60);
+        doc.text(`Berichte: ${p.berichte}`, 10, 70);
+        doc.text(`Behandlung: ${p.behandlung}`, 10, 80);
+        doc.save(`${p.name}_Patientenakte.pdf`);
+    };
+}
+</script>
+
+</body>
+</html>

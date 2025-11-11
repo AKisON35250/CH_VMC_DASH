@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abfrage Dashboard</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f7;
+    color: #2c3e50;
+    margin: 0;
+    padding: 20px;
+}
+h1 { text-align: center; margin-bottom: 20px; }
+input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    border: 1px solid #7f8c8d;
+    border-radius: 4px;
+}
+.table-container {
+    overflow-x: auto;
+    max-height: 70vh;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    background-color: #ffffff;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th {
+    background-color: #34495e;
+    color: #ecf0f1;
+    padding: 10px;
+    text-align: left;
+}
+td {
+    padding: 10px;
+    border-bottom: 1px solid #bdc3c7;
+}
+tbody tr:nth-child(even) { background-color: #ecf0f1; }
+tbody tr:hover { background-color: #d0d7de; }
+.status-bestanden { color: #27ae60; font-weight: bold; }
+.status-nicht-bestanden { color: #c0392b; font-weight: bold; }
+td button {
+    padding: 4px 8px;
+    margin-left: 5px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid #7f8c8d;
+    background-color: #bdc3c7;
+    color: #2c3e50;
+    cursor: pointer;
+}
+td button:hover { background-color: #95a5a6; }
+#back-btn {
+    margin-bottom: 10px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid #7f8c8d;
+    background-color: #bdc3c7;
+    cursor: pointer;
+}
+#back-btn:hover { background-color: #95a5a6; }
+</style>
+</head>
+<body>
+
+<h1>Abfrage Dashboard</h1>
+
+<input type="text" id="search-name-query" placeholder="Name eingeben" oninput="filterQueryEntries()">
+
+<div class="table-container">
+    <table id="query-entries-list">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Lizenzen & Status</th>
+                <th>Geburtsdatum</th>
+                <th>Telefon</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Einträge erscheinen hier -->
+        </tbody>
+    </table>
+</div>
+
+<script src="script_abfragen.js"></script>
+</body>
+</html>

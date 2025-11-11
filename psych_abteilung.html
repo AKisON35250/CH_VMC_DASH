@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psychologische Abteilung - Dokumente & Hilfsmittel</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f7;
+    color: #2c3e50;
+    margin: 0;
+    padding: 20px;
+}
+h1 { text-align: center; margin-bottom: 20px; }
+.table-container {
+    overflow-x: auto;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    background-color: #ffffff;
+    margin-bottom: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th {
+    background-color: #34495e;
+    color: #ecf0f1;
+    padding: 10px;
+    text-align: left;
+}
+td {
+    padding: 10px;
+    border-bottom: 1px solid #bdc3c7;
+}
+tbody tr:nth-child(even) { background-color: #ecf0f1; }
+tbody tr:hover { background-color: #d0d7de; }
+td button {
+    padding: 4px 8px;
+    margin-left: 5px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid #7f8c8d;
+    background-color: #bdc3c7;
+    color: #2c3e50;
+    cursor: pointer;
+}
+td button:hover { background-color: #95a5a6; }
+#back-btn, #add-btn {
+    margin-bottom: 10px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid #7f8c8d;
+    background-color: #bdc3c7;
+    cursor: pointer;
+}
+#back-btn:hover, #add-btn:hover { background-color: #95a5a6; }
+</style>
+</head>
+<body>
+
+<h1>Psychologische Abteilung - Dokumente & Hilfsmittel</h1>
+
+<button id="back-btn" onclick="window.location.href='vmc-dashboard.html'">Zurück</button>
+<button id="add-btn" onclick="addDocument()">Neues Dokument hinzufügen</button>
+
+<div class="table-container">
+    <table id="doc-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Beschreibung</th>
+                <th>Link / Download</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dokumente werden hier eingefügt -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+// Dokumente-Array
+let documents = [
+    { name: "Psychologisches Begutachtungsformular", description: "Formular zur Durchführung der psychologischen Begutachtung", link: "docs/begutachtung.pdf" },
+    { name: "Checkliste Waffenschein", description: "Checkliste für die Beantragung eines Waffenscheins", link: "docs/waffenschein_checkliste.pdf" }
+];
+
+// Tabelle laden
+function loadDocuments() {
+    const tbody = document.querySelector("#doc-table tbody");
+    tbody.innerHTML = "";
+    documents.forEach((doc, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${doc.name}</td>
+            <td>${doc.description}</td>
+            <td><a href="${doc.link}" target="_blank">Öffnen</a></td>
+            <td>
+                <button onclick="editDocument(${index})">Bearbeiten</button>
+                <button onclick="deleteDocument(${index})">Löschen</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Neues Dokument hinzufügen
+function addDocument() {
+    let name = prompt("Name des Dokuments:");
+    if(!name) return;
+    let description = prompt("Beschreibung:");
+    if(!description) return;
+    let link = prompt("Link oder Pfad zum Dokument:");
+    if(!link) return;
+
+    documents.push({ name, description, link });
+    loadDocuments();
+}
+
+// Dokument bearbeiten
+function editDocument(index) {
+    let doc = documents[index];
+    let newName = prompt("Neuer Name:", doc.name);
+    let newDesc = prompt("Neue Beschreibung:", doc.description);
+    let newLink = prompt("Neuer Link:", doc.link);
+    if(!newName || !newDesc || !newLink) return;
+    documents[index] = { name: newName, description: newDesc, link: newLink };
+    loadDocuments();
+}
+
+// Dokument löschen
+function deleteDocument(index) {
+    if(confirm("Willst du dieses Dokument wirklich löschen?")) {
+        documents.splice(index, 1);
+        loadDocuments();
+    }
+}
+
+// Laden beim Start
+window.onload = loadDocuments;
+</script>
+
+</body>
+</html>
